@@ -32,4 +32,4 @@ echo $Common->sourceForView($str5, 'forth'); ?>
 http://qbnz.com/highlighter/
 In the geshi folder, add the file forth.php.</p>
 
-<img scr="../images/forthHighlight.png"/>
+<img src="images/forthHighlight.png"/>
