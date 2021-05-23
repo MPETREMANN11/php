@@ -1,7 +1,7 @@
 <p>The files in the geshi folder are used to distribute syntactically colored FORTH code. Example of use:</p>
 
 <pre>
-  <?php $str5 = <<<EOT
+&lt;?php $str5 = <<<EOT
 \ convert a number to a Forth code for FlahsForth:decimal string
 : .#s ( n ---)
     base @ >r
@@ -31,3 +31,5 @@ echo $Common->sourceForView($str5, 'forth'); ?>
 <p>To color the FORTH code on your website, install the GeSHI library:
 http://qbnz.com/highlighter/
 In the geshi folder, add the file forth.php.</p>
+
+<img scr="images/forthHighlight.png"/>
