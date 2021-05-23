@@ -1,11 +1,11 @@
 <p>The files in the geshi folder are used to distribute syntactically colored FORTH code. Example of use:</p>
 
 <pre>
-&lt;?php $str5 = <<<EOT
+&lt;?php $str5 = &lt;&lt;&lt;EOT
 \ convert a number to a Forth code for FlahsForth:decimal string
 : .#s ( n ---)
     base @ >r
-    0 <# #s #> type
+    0 &lt;# #s #> type
     r> base !
   ;
 
