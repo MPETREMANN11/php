@@ -1,16 +1,31 @@
 <?php
+/**
+ * PHP script for highlighting FORTH source code
+ * Filename:      Forth.php
+ * Date:          22 june 2022
+ * Updated:       22 june 2022
+ * language:      PHP 7+
+ * Copyright:     Marc PETREMANN
+ * Marc PETREMANN
+ * GNU General Public License
+ */
 
 class My_Forth {
 
     function __construct() {
-        $this->enable_keyword_links = true; // documentation des mots activée
+        $this->enable_keyword_links = true; // activate external links
         $this->getKeywords();
     }
 
+    // enable externam links
     var $enable_keywords_links;
 
+    // initialize keywords array
     var $keywords;
 
+    /**
+     * fetch all forth words from database
+     */
     private function getKeywords() {
         $Glossaire = new Application_Model_Glossaire;
         $this->keywords[0] = $Glossaire->getListeMotsOrdinaires();
@@ -25,7 +40,7 @@ class My_Forth {
 
 
     /**
-     * Analyse et décore le code FORTH
+     * Analyse and colorize FORTH code
      * @param  string $source
      * @return string
      */
@@ -37,7 +52,7 @@ class My_Forth {
 
 
     /**
-     * Explose le code source en mots clés
+     * Explode FORTH source code in array of keywords
      * @param type $code
      */
     private function explodeSource($code) {
@@ -53,7 +68,7 @@ class My_Forth {
     var $commentFlag;
 
     /**
-     * génère le code source décoré
+     * Generate highlighted FORTH source code
      * @return string
      */
     private function generateOutsource() {
@@ -94,37 +109,40 @@ class My_Forth {
 
 
     /**
-     * teste si le mot est un commentaire ou un mot défini dans FORTH
+     * highlight FORTH code
      * @param string $word
      */
     private function styliseWord($word) {
         if ($this->commentFlag == TRUE) {
             return $word ." ";
         }
-        // teste si $word est une valeur binaire
+        // test if  $word is a binary value
         $re = '/^[0-1]{8}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
-            return $this->linkifyBinNumber($word);
+//            return $this->linkifyBinNumber($word);
+            return '<abbr style="' . $this->outStyle['bin'] . '" title="binary byte">' . $word . '</abbr> ';
         }
-        // teste si $word est une valeur décimale
+        // test if $word is a decimal value
         $re = '/^\d{1,}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
-            return $this->linkifyDecNumber($word);
+//            return $this->linkifyDecNumber($word);
+            return '<abbr style="' . $this->outStyle['dec'] . '" title="number">' . $word . '</abbr> ';
         }
-        // teste si $word est une valeur hexadécimale
+        // test if $word is a hexadecimal value
         $re = '/^\$[a-f0-9]{1,}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
-            return $this->linkifyHexNumber($word);
+//            return $this->linkifyHexNumber($word);
+            return '<abbr style="' . $this->outStyle['hex'] . '" title="hexadecimal value">' . $word . '</abbr> ';
         }
-        // si c'est le mot \ on marque le commentaire
+        // if it's the word \ tag comment
         if (ord($word) == 92) {
             $this->commentFlag = TRUE;
             return '<span style="color: #808080; font-style: italic;">' . $word ." ";
         }
-        // teste si $word est un mot FORTH
+        // test if  $word is a FORTH word
         foreach ($this->keywords AS $level => $listeMots) {
             if (in_array(strtoupper($word), $listeMots)) {
                 return $this->linkifyWord($word, $level);
@@ -133,18 +151,11 @@ class My_Forth {
         return $word ." ";
     }
 
-    private function linkifyBinNumber($word) {
-        return '<abbr style="' . $this->outStyle['bin'] . '" title="binary byte">' . $word . '</abbr> ';
-    }
 
-    private function linkifyDecNumber($word) {
-        return '<abbr style="' . $this->outStyle['dec'] . '" title="number">' . $word . '</abbr> ';
-    }
-
-    private function linkifyHexNumber($word) {
-        return '<abbr style="' . $this->outStyle['hex'] . '" title="hexadecimal value">' . $word . '</abbr> ';
-    }
-
+    /**
+     * array of external links
+     * @var array
+     */
     var $outlink = array(
         0 => 'help/index-esp32/word/',
         1 => 'help/index-esp32/word/',
@@ -154,6 +165,13 @@ class My_Forth {
         5 => 'help/reg-esp32/word/',
     );
 
+
+    /**
+     * include FORTH word in an external link
+     * @param string $word
+     * @param mixed  $level
+     * @return string
+     */
     private function linkifyWord($word, $level) {
         if ($this->enable_keyword_links) {
             return '<a href="' . $this->outlink[$level] . base64_encode($word) . '" style="' . $this->outStyle[$level] . '">' . $word . '</a> ';
