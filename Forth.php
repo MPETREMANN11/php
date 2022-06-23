@@ -120,21 +120,18 @@ class My_Forth {
         $re = '/^[0-1]{8}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
-//            return $this->linkifyBinNumber($word);
             return '<abbr style="' . $this->outStyle['bin'] . '" title="binary byte">' . $word . '</abbr> ';
         }
         // test if $word is a decimal value
         $re = '/^\d{1,}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
-//            return $this->linkifyDecNumber($word);
             return '<abbr style="' . $this->outStyle['dec'] . '" title="number">' . $word . '</abbr> ';
         }
         // test if $word is a hexadecimal value
         $re = '/^\$[a-f0-9]{1,}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
-//            return $this->linkifyHexNumber($word);
             return '<abbr style="' . $this->outStyle['hex'] . '" title="hexadecimal value">' . $word . '</abbr> ';
         }
         // if it's the word \ tag comment
