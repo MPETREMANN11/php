@@ -13,12 +13,13 @@
 class My_Forth {
 
     function __construct() {
-        $this->enable_keyword_links = true; // activate external links
+        $this->enable_keyword_link = true; // activate external links
+        $this->commentFlag = FALSE;
         $this->getKeywords();
     }
 
-    // enable externam links
-    var $enable_keywords_links;
+    // enable external link
+    var $enable_keyword_link;
 
     // initialize keywords array
     var $keywords;
@@ -45,35 +46,36 @@ class My_Forth {
      * @return string
      */
     public function sourceForView($source) {
-        $this->explodeSource($source);
-        $outSource = $this->generateOutsource();
-        return "<pre class='esp32-forth highlight_source' style='font-family:monospace;'>" . $outSource . "</pre>";
+        return "<pre class='esp32-forth highlight_source' style='font-family:monospace;'>" 
+            . $this->generateOutsource($this->explodeSource($source)) . "</pre>";
     }
 
-
+    
     /**
      * Explode FORTH source code in array of keywords
      * @param type $code
+     * @return array
      */
     private function explodeSource($code) {
         $lines = explode( "\n", str_replace("\r", "", $code));
-        $this->keySource = array();
+        $keySource = array();
         foreach ($lines AS $line) {
-            $this->keySource[] = explode(" ", $line);
+            $keySource[] = explode(" ", $line);
         }
+        return $keySource;
     }
 
 
-    // if TRUE, tne end of line is a FORTH comment
+    // if TRUE, then end of line is a FORTH comment
     var $commentFlag;
 
     /**
      * Generate highlighted FORTH source code
      * @return string
      */
-    private function generateOutsource() {
+    private function generateOutsource($keySource) {
         $outSource = "";
-        foreach ($this->keySource AS $line) {
+        foreach ($keySource AS $line) {
             foreach ($line AS $word) {
                 if (strlen($word)==0) {
                     $outSource .= " ";
@@ -120,22 +122,25 @@ class My_Forth {
         $re = '/^[0-1]{8}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
+//            return $this->linkifyBinNumber($word);
             return '<abbr style="' . $this->outStyle['bin'] . '" title="binary byte">' . $word . '</abbr> ';
         }
         // test if $word is a decimal value
         $re = '/^\d{1,}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
+//            return $this->linkifyDecNumber($word);
             return '<abbr style="' . $this->outStyle['dec'] . '" title="number">' . $word . '</abbr> ';
         }
         // test if $word is a hexadecimal value
         $re = '/^\$[a-f0-9]{1,}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
+//            return $this->linkifyHexNumber($word);
             return '<abbr style="' . $this->outStyle['hex'] . '" title="hexadecimal value">' . $word . '</abbr> ';
         }
         // if it's the word \ tag comment
-        if (ord($word) == 92) {
+        if (ord($word) == 92 && $this->commentFlag = FALSE) {
             $this->commentFlag = TRUE;
             return '<span style="color: #808080; font-style: italic;">' . $word ." ";
         }
@@ -170,7 +175,7 @@ class My_Forth {
      * @return string
      */
     private function linkifyWord($word, $level) {
-        if ($this->enable_keyword_links) {
+        if ($this->enable_keyword_link) {
             return '<a href="' . $this->outlink[$level] . base64_encode($word) . '" style="' . $this->outStyle[$level] . '">' . $word . '</a> ';
         }
         return '<abbr style="' . $this->outStyle[$level] . '">' . $word . '</abbr> ';
