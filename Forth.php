@@ -3,7 +3,7 @@
  * PHP script for highlighting FORTH source code
  * Filename:      Forth.php
  * Date:          22 june 2022
- * Updated:       22 june 2022
+ * Updated:       26 june 2022
  * language:      PHP 7+
  * Copyright:     Marc PETREMANN
  * Marc PETREMANN
@@ -14,7 +14,8 @@ class My_Forth {
 
     function __construct() {
         $this->enable_keyword_link = true; // activate external links
-        $this->commentFlag = FALSE;
+//        $this->commentFlag = FALSE;
+        $this->flagDecorate = TRUE;
         $this->getKeywords();
     }
 
@@ -34,9 +35,9 @@ class My_Forth {
         $this->keywords[2] = $Glossaire->getListeMotsStructure();
         $this->keywords[3] = $Glossaire->getVariablesConstantes();
         $this->keywords[4] = $Glossaire->getListeMotsVocabulaires();
-        //$motsDefered    = $Glossaire->getListeMotsDefered();
+        $this->keywords[5] = $Glossaire->getListeMotsDefered();
         $Registers = new Application_Model_Registers;
-        $this->keywords[5] = $Registers->getListeRegistres();
+        $this->keywords[6] = $Registers->getListeRegistres();
     }
 
 
@@ -46,11 +47,12 @@ class My_Forth {
      * @return string
      */
     public function sourceForView($source) {
-        return "<pre class='esp32-forth highlight_source' style='font-family:monospace;'>" 
+        $source = str_replace("¤", "$", $source);
+        return "<pre class='esp32-forth highlight_source' style='font-family:monospace;'>"
             . $this->generateOutsource($this->explodeSource($source)) . "</pre>";
     }
 
-    
+
     /**
      * Explode FORTH source code in array of keywords
      * @param type $code
@@ -66,9 +68,6 @@ class My_Forth {
     }
 
 
-    // if TRUE, then end of line is a FORTH comment
-    var $commentFlag;
-
     /**
      * Generate highlighted FORTH source code
      * @return string
@@ -83,8 +82,8 @@ class My_Forth {
                     $outSource .= $this->styliseWord($word);
                 }
             }
-            if ($this->commentFlag == TRUE) {
-                $this->commentFlag = FALSE;
+            if ($this->flagDecorate == FALSE) {
+                $this->flagDecorate = true;
                 $outSource .= "</span>";
             }
             $outSource .= "\n";
@@ -99,46 +98,53 @@ class My_Forth {
      */
     var $outStyle = array(
             0 => 'color: #0000ff;',                         // normal words
-            1 => 'color: red; font-weight: bold;',          // definitions words
+            1 => 'color: red; font-weight: bold;" title="definition word"', 
             2 => 'color: black; background-color: yellow;', // structure words
             3 => 'color: #ff00ff; font-weight: bold;',      // constants
             4 => 'color: black; font-weight: bold; background-color: #d7d7ff',  // vocabularies
-            5 => 'color: green; background-color: #d9e9c6;', // registers
+            5 => 'color: orange; font-style: italic;" title="defered word"',
+            6 => 'color: green; background-color: #d9e9c6;', // registers
         'bin' => 'color: #7f00dd;',     // binaries values
         'dec' => 'color: #0000dd;',     // decimal values
         'hex' => 'color: #003ffd;',     // hexadecimal values
     );
 
+    // if true, word decoration is active
+    var $flagDecorate;
+    
 
     /**
      * highlight FORTH code
      * @param string $word
      */
     private function styliseWord($word) {
-        if ($this->commentFlag == TRUE) {
+        if ($this->flagDecorate == FALSE) {
             return $word ." ";
         }
         // test if  $word is a binary value
         $re = '/^[0-1]{8}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
+//            return $this->linkifyBinNumber($word);
             return '<abbr style="' . $this->outStyle['bin'] . '" title="binary byte">' . $word . '</abbr> ';
         }
         // test if $word is a decimal value
         $re = '/^\d{1,}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
+//            return $this->linkifyDecNumber($word);
             return '<abbr style="' . $this->outStyle['dec'] . '" title="number">' . $word . '</abbr> ';
         }
         // test if $word is a hexadecimal value
         $re = '/^\$[a-f0-9]{1,}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
+//            return $this->linkifyHexNumber($word);
             return '<abbr style="' . $this->outStyle['hex'] . '" title="hexadecimal value">' . $word . '</abbr> ';
         }
         // if it's the word \ tag comment
-        if (ord($word) == 92 && $this->commentFlag == FALSE) {
-            $this->commentFlag = TRUE;
+        if (ord($word) == 92 && $this->flagDecorate == TRUE) {
+            $this->flagDecorate = FALSE;
             return '<span style="color: #808080; font-style: italic;">' . $word ." ";
         }
         // test if  $word is a FORTH word
@@ -161,7 +167,17 @@ class My_Forth {
         2 => 'help/index-esp32/word/',
         3 => 'help/index-esp32/word/',
         4 => 'help/index-esp32/word/',
-        5 => 'help/reg-esp32/word/',
+        5 => 'help/index-esp32/word/',
+        6 => 'help/reg-esp32/word/',
+    );
+
+
+    /**
+     * list of string marker and associated styles
+     * @var array
+     */
+    var $stringmarker = array(
+        '."'    => "color: green;",
     );
 
 
