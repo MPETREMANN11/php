@@ -3,7 +3,7 @@
  * PHP script for highlighting FORTH source code
  * Filename:      Forth.php
  * Date:          22 june 2022
- * Updated:       26 june 2022
+ * Updated:       03 july 2022
  * language:      PHP 7+
  * Copyright:     Marc PETREMANN
  * Marc PETREMANN
@@ -13,7 +13,7 @@
 class My_Forth {
 
     function __construct() {
-        $this->enable_keyword_link = true; // activate external links
+        $this->enable_keyword_link = -1; // activate external links
 //        $this->commentFlag = FALSE;
         $this->flagDecorate = TRUE;
         $this->getKeywords();
@@ -107,6 +107,7 @@ class My_Forth {
         'bin' => 'color: #7f00dd;',     // binaries values
         'dec' => 'color: #0000dd;',     // decimal values
         'hex' => 'color: #003ffd;',     // hexadecimal values
+       'real' => 'color: #146361;',     // real values
     );
 
     // if true, word decoration is active
@@ -125,22 +126,25 @@ class My_Forth {
         $re = '/^[0-1]{8}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
-//            return $this->linkifyBinNumber($word);
-            return '<abbr style="' . $this->outStyle['bin'] . '" title="binary byte">' . $word . '</abbr> ';
+            return '<abbr style="' . $this->outStyle['bin'] . '" title="32 bytes binary byte">' . $word . '</abbr> ';
         }
         // test if $word is a decimal value
-        $re = '/^\d{1,}/is';
+        $re = '/^[+-]?((\d+(\.\d*)?)|(\.\d+))$/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
-//            return $this->linkifyDecNumber($word);
-            return '<abbr style="' . $this->outStyle['dec'] . '" title="number">' . $word . '</abbr> ';
+            return '<abbr style="' . $this->outStyle['dec'] . '" title="32 bytes integer value">' . $word . '</abbr> ';
+        }
+        // test if $word is a real value ne or n.ne
+        $re = '/^[+-]?((\d+(\.\d*)?)|(\.\d+))e$/is';
+        preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
+        if (!empty($matches)) {
+            return '<abbr style="' . $this->outStyle['real'] . '" title="real value">' . $word . '</abbr> ';
         }
         // test if $word is a hexadecimal value
         $re = '/^\$[a-f0-9]{1,}/is';
         preg_match($re, $word, $matches, PREG_OFFSET_CAPTURE, 0);
         if (!empty($matches)) {
-//            return $this->linkifyHexNumber($word);
-            return '<abbr style="' . $this->outStyle['hex'] . '" title="hexadecimal value">' . $word . '</abbr> ';
+            return '<abbr style="' . $this->outStyle['hex'] . '" title="32 bytes hexadecimal value">' . $word . '</abbr> ';
         }
         // if it's the word \ tag comment
         if (ord($word) == 92 && $this->flagDecorate == TRUE) {
